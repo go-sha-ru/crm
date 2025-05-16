@@ -1,0 +1,6 @@
+.idea
+*.pyc
+.pgpas
+venv/
+.env
+.git1

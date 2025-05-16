@@ -1,0 +1,70 @@
+{% extends "admin/change_list.html" %}
+{% load my_calendar %}
+{% block extrahead %}
+{{ block.super }}
+    <style>
+    .weekend {
+        background-color: var(--primary);
+    }
+    .hours:hover {
+        background-color: var(--selected-bg);
+    }
+    </style>
+{% endblock %}
+{% block content_title %}{% if title %}<h1 id="report_title">{{ title }}: {{ days.1|date:"F" }} {{ days.1|date:"Y" }}</h1>{% endif %}{% endblock %}
+{% block content %}
+    <div id="content-main">
+        {% block object-tools %}
+            <a id="is_hours" data-is_hours="{{ is_hours }}"></a>
+        <ul class="object-tools">
+            {% block object-tools-items %}
+                <li>
+                    <a id="save_csv" href="">Скачать csv</a>
+                </li>
+                <li>
+                    <a href="mass-time/">Массовое назначение {% if is_hours %}часов{% else %}работ{% endif %}</a>
+                </li>
+
+            {% endblock %}
+        </ul>
+    {% endblock %}
+
+        <div class="module{% if cl.has_filters %} {% endif %}" id="changelist">
+            <div class="changelist-form-container">{{ egf.as_p }}</div>
+        </div>
+    <table id="report_table">
+        <thead>
+        <tr>
+            <th class="thead">Сотрудник</th>
+            {% for day in days %}
+                <th class="thead{% if day|is_weekend %} weekend{% endif %}" style="text-align: center">{{ day|date:"d" }}</th>
+            {% endfor %}
+            <th class="thead">Итого</th>
+        </tr>
+        </thead>
+        <tbody>
+            {% for obj in qs  %}
+            <tr class="tdata">
+                <td>{{ obj.fio }}</td>
+                {% for day in days %}
+                    <td class="hours col_{{ forloop.counter0 }}{% if day|is_weekend %} weekend{% endif %}"
+                        data-day="{{ day|date:"d.m.Y" }}"
+                        data-id=""
+                        data-employee_id="{{ obj.id }}">{% get_hours employee_times day obj.id is_hours %}</td>
+                {% endfor %}
+                <td class="row_total col_{{ days|length }}"></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <th class="tfoot">Итого</th>
+            {% for day in days %}
+                <th style="text-align: center" data-col="{{ forloop.counter0 }}" class="tfoot column_total{% if day|is_weekend %} weekend{% endif %}"></th>
+            {% endfor %}
+                <th class="tfoot column_total" data-col="{{ days|length }}"></th>
+            </tr>
+        </tfoot>
+    </table>
+    </div>
+{% endblock %}

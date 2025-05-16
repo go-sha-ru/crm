@@ -1,0 +1,159 @@
+{% extends "admin/change_form.html" %}
+{% load i18n admin_urls static admin_modify %}
+{% block submit_buttons_bottom %}{{ block.super }}
+    {% if object_id %}
+        <div class="submit-row">
+            <input type="submit" value="Рассчитать" name="_calc">
+            <input type="submit" value="Перенести остатки" name="_move_next">
+            <input type="button" onclick="window.printLandscape();" value="Печать альбомная">
+            <input type="button" onclick="window.printPortrait();" value="Печать портретная">
+        </div>
+        <div class="submit-row">
+            {{ upload_form.as_p }}
+            <input type="submit" value="Загрузить файл" name="_upload" id="id_upload" disabled>
+        </div>
+        <table class="no_print">
+            <tr>
+                <td>{{ employee_group_form.as_p }}</td>
+                <td>{{ salary_view_form.as_p }}</td>
+            </tr>
+        </table>
+
+        <div class="printable">
+        <p>{{ salary.get_name }}</p>
+        <table>
+            <thead>
+            <tr>
+                <th>Сотрудник</th>
+                <th>Должность</th>
+                {% if salary_view.show_time_column %}
+                    <th>Вид оплаты труда / Ставка</th>
+                    <th>Часы</th>
+                {% endif %}
+                {% for stg in salary_type_groups %}
+                    <th>{{ stg.title }}</th>
+                {% endfor %}
+                {% if salary_view.show_total_column %}
+                    <th>Итого</th>
+                {% endif %}
+
+            </tr>
+            </thead>
+            <tbody>
+            {% for k, v in sed.items %}
+                <tr>
+                    <td colspan="12"><b>{{ k }}</b></td>
+                </tr>
+                {% for se in v %}
+                    <tr data-salary-id="{{ salary.pk }}" data-employee-id="{{ se.employee_id }}" data-add-url="{{ se.get_admin_url_add }}">
+                        <td>{{ se.employee }}</td>
+                        <td>{{ se.employee.role }}</td>
+                        {% if salary_view.show_time_column %}
+                            <td>
+                                {% if se.pk %}
+                                    {% for rate in se.salary_employee_rate.all %}
+                                        {{ rate.get_remuneration_type_display }} / {{ rate.salary_rate }}
+                                    {% endfor %}
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if se.pk %}
+                                    {% for rate in se.salary_employee_rate.all %}
+                                        {{ rate.hours|default_if_none:"" }}
+                                    {% endfor %}
+                                {% endif %}
+                            </td>
+                            {% if se.pk %}
+                                {% for k, amount in se.total_amount.items %}
+                                    <td class="item-open" data-group-id="{{ k }}">{{ amount|default_if_none:""|floatformat:2 }}</td>
+                                {% endfor %}
+                            {% else %}
+                                {% for stg in salary_type_groups %}
+                                    <td class="item-open" data-group-id="{{ stg.id }}"></td>
+                                {% endfor %}
+                            {% endif %}
+                        {% else %}
+                            {% for stg in salary_type_groups %}
+                                <td class="item-open" data-group-id="{{ stg.id }}"></td>
+                            {% endfor %}
+                        {% endif %}
+                        {% if salary_view.show_total_column %}
+                            <td>
+                                {% if se.pk %}
+                                    {{ se.amount_all|default_if_none:""|floatformat:2 }}
+                                {% endif %}
+                            </td>
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+            {% endfor %}
+            </tbody>
+            <tfoot>
+            <tr>
+                <th colspan="{% if salary_view.show_time_column %}4{% else %}2{% endif %}">Итого</th>
+                {% for k, amount in total_amounts.items %}
+                    {% if amount == 0 %}
+                        <th></th>
+                    {% else %}
+                        <th>{{ amount|default_if_none:""|floatformat:2 }}</th>
+                    {% endif %}
+                {% endfor %}
+
+                {% if salary_view.show_total_column %}
+                    <th>{{ amount_all|default_if_none:""|floatformat:2 }}</th>
+                {% endif %}
+            </tr>
+            </tfoot>
+        </table>
+        </div>
+    {% endif %}
+    <style>
+        @media print {
+            @page {
+                size: landscape;
+                margin: 0;
+            }
+        }
+
+        @media print {
+            html, body {
+                padding: 0;
+                margin: 0;
+            }
+
+            header,
+            header *,
+            nav *,
+            #content h1,
+            #content h2,
+            fieldset,
+            .submit-row,
+            .object-tools,
+            .no_print * {
+                display: none;
+            }
+
+            .printable {
+                display: block !important;
+            }
+
+            .printable table,
+            .table-responsive {
+                overflow-x: initial !important;
+                display: initial;
+            }
+
+            .table td, .table th {
+                padding: 0;
+                font-size: 12px;
+            }
+
+            .table {
+                width: 100%;
+            }
+        }
+        .item-open:hover{
+            background-color: rgb(233, 236, 239);
+        }
+    </style>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "admin/change_form.html" %}
+{% load my_calendar %}
+{% block field_sets %}
+    {% get_table adminform as times_data %}
+    {% if times_data.0 %}
+        <table>
+            <thead>
+            <tr>
+                <th>{% if times_data.2 %}Тип{% else %}Название{% endif %}</th>
+                <th>Время</th>
+                {% if times_data.2 %}<th>Проект</th>{% endif %}
+                <th>Примечание</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for time in times_data.1 %}
+            <tr>
+                <td>{% if time.is_hours %}{{ time.get_type_display }}{% else %}{{ time.work }}{% endif %}</td>
+                <td>{% if time.is_hours %}{{ time.hours }}{% else %}{{ time.amount }}{% endif %}</td>
+                {% if time.is_hours %}<td>{% if time.project %}{{ time.project }}{% else %}(не задано){% endif %}</td>{% endif %}
+                <td>{{ time.notes|default_if_none:"" }}</td>
+                <td><a href="{{ time.delete_link }}">удалить</a> </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+    {{ block.super }}
+{% endblock %}

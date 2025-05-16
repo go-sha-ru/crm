@@ -1,0 +1,32 @@
+{% extends "admin/vehicle/change_list.html" %}
+{% block extrahead %}
+{{ block.super }}
+<script type="text/javascript">
+(function($) {
+    $(document).ready(function() {
+        $('#result_list .field-is_free img[alt=False]').each(function() {
+            $(this).closest('tr').css('background-color', '#faac7c');
+        });
+    });
+})(django.jQuery);
+</script>
+{% endblock %}
+{% block object-tools %}
+    <ul class="object-tools">
+        <li>
+            <a href={{ previous_month }}>
+                Предыдущий месяц
+            </a>
+        </li>
+        <li>
+            <a href={{ next_month }}>
+                Следующий месяц
+            </a>
+        </li>
+    </ul>
+{% endblock %}
+{% block result_list %}
+    {{ calendar|safe }}
+    {{ block.super }}
+
+{% endblock %}
